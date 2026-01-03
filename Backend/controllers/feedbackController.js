@@ -5,39 +5,36 @@ export const addFeedback = async (req, res) => {
         const {
             user_id,
             user_name,
-            rating, // Overall rating (calculated or passed)
+            rating,
             category,
             message,
             rating_course,
             rating_ui,
             rating_ux,
             rating_coding,
-            rating_general,
             comments
         } = req.body;
 
-        // Validation: Ensure all 5 specific ratings are present
-        if (!rating_course || !rating_ui || !rating_ux || !rating_coding || !rating_general) {
-            return res.status(400).json({ message: 'All 5 rating categories are mandatory.' });
+        if (!rating || !category) {
+            return res.status(400).json({ message: 'Rating and category are required' });
         }
 
         const query = `
             INSERT INTO feedback 
-            (user_id, user_name, rating, category, message, rating_course, rating_ui, rating_ux, rating_coding, rating_general, comments)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (user_id, user_name, rating, category, message, rating_course, rating_ui, rating_ux, rating_coding, comments)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         await db.query(query, [
             user_id || null,
             user_name || 'Anonymous',
             rating,
-            category || 'Comprehensive',
+            category,
             message || '',
-            rating_course,
-            rating_ui,
-            rating_ux,
-            rating_coding,
-            rating_general,
+            rating_course || 0,
+            rating_ui || 0,
+            rating_ux || 0,
+            rating_coding || 0,
             comments || ''
         ]);
 
@@ -54,17 +51,6 @@ export const getAllFeedback = async (req, res) => {
         res.json(rows);
     } catch (error) {
         console.error('Error fetching feedback:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-};
-
-export const getUserFeedback = async (req, res) => {
-    try {
-        const { userId } = req.params;
-        const [rows] = await db.query('SELECT * FROM feedback WHERE user_id = ? ORDER BY created_at DESC', [userId]);
-        res.json(rows);
-    } catch (error) {
-        console.error('Error fetching user feedback:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
